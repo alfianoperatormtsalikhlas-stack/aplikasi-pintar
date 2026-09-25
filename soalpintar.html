@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoalPintar — Generator Soal Latihan Bertingkat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14231d;
+    --bg2:#1c2f26;
+    --bg3:#233a2f;
+    --ink:#f4efe3;
+    --ink-dim:#b9c2ba;
+    --yellow:#f2c14e;
+    --teal:#6fcf97;
+    --orange:#f2994a;
+    --red:#eb5757;
+    --rule:rgba(244,239,227,0.18);
+    --rule-soft:rgba(244,239,227,0.09);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(var(--rule-soft) 0 1px, transparent 1px 34px),
+      radial-gradient(ellipse at top, #1a2e24 0%, var(--bg) 60%);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    line-height:1.55;
+    min-height:100vh;
+    padding:40px 18px 80px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  header.top{margin-bottom:34px;}
+  header.top h1{
+    font-family:'Caveat', cursive;
+    font-weight:700;
+    font-size:3rem;
+    color:var(--yellow);
+    margin:0 0 4px;
+    letter-spacing:0.5px;
+  }
+  header.top p{margin:0;color:var(--ink-dim);font-size:0.98rem;max-width:56ch;}
+
+  .mode-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .mode-tab{
+    background:transparent;
+    color:var(--ink-dim);
+    border:1.5px dashed var(--rule);
+    border-radius:8px;
+    padding:9px 16px;
+    font-weight:600;
+    font-size:0.88rem;
+  }
+  .mode-tab.active{
+    color:var(--yellow);
+    border-color:var(--yellow);
+    border-style:solid;
+  }
+  .mode-tab:hover:not(.active){border-color:var(--ink-dim);color:var(--ink);}
+
+  .card{
+    background:var(--bg2);
+    border:1.5px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 22px 24px;
+    margin-bottom:26px;
+  }
+  .card h2{
+    font-family:'Caveat', cursive;
+    font-size:1.7rem;
+    font-weight:700;
+    color:var(--ink);
+    margin:0 0 14px;
+    border-bottom:1.5px dashed var(--rule);
+    padding-bottom:10px;
+  }
+
+  label{display:block;font-size:0.86rem;color:var(--ink-dim);margin-bottom:6px;}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .field{margin-bottom:14px;}
+  input[type=text], input[type=password], input[type=number], select, textarea{
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    color:var(--ink);
+    font-family:inherit;
+    font-size:0.96rem;
+    padding:10px 12px;
+  }
+  textarea{resize:vertical;min-height:56px;}
+  input:focus, select:focus, textarea:focus{
+    outline:2px solid var(--yellow);
+    outline-offset:1px;
+  }
+  small.hint{display:block;color:var(--ink-dim);font-size:0.8rem;margin-top:5px;}
+  small.hint a{color:var(--teal);}
+
+  .apikey-row{display:flex;gap:8px;align-items:flex-start;}
+  .apikey-row input{flex:1;}
+  button{
+    font-family:inherit;
+    font-weight:600;
+    font-size:0.95rem;
+    border-radius:6px;
+    border:1.5px solid transparent;
+    padding:10px 18px;
+    cursor:pointer;
+    transition:transform .08s ease;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-primary{background:var(--yellow);color:#1c2210;}
+  .btn-primary:hover{background:#f6cd6c;}
+  .btn-primary:disabled{background:#5a5340;color:#8a8577;cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--rule);}
+  .btn-ghost:hover{border-color:var(--ink-dim);}
+  .btn-small{padding:6px 12px;font-size:0.82rem;}
+
+  .status-line{margin-top:12px;font-size:0.88rem;color:var(--ink-dim);min-height:1.2em;}
+  .status-line.err{color:var(--red);}
+  .status-line.ok{color:var(--teal);}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+
+  /* Difficulty badge */
+  .badge{
+    display:inline-block;
+    font-size:0.76rem;
+    font-weight:700;
+    padding:3px 11px;
+    border-radius:99px;
+    border:1.5px solid;
+  }
+  .badge.mudah{color:var(--teal);border-color:var(--teal);}
+  .badge.sedang{color:var(--yellow);border-color:var(--yellow);}
+  .badge.sulit{color:var(--orange);border-color:var(--orange);}
+  .badge.sangat-sulit{color:var(--red);border-color:var(--red);}
+
+  #hasil{margin-top:8px;}
+  .hasil-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .hasil-head h2{font-family:'Caveat',cursive;font-size:1.9rem;color:var(--yellow);margin:0;}
+
+  .soal-item{
+    border-top:1.5px dashed var(--rule);
+    padding:20px 0;
+  }
+  .soal-item:first-child{border-top:none;padding-top:0;}
+  .soal-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;}
+  .soal-nomor{font-weight:700;color:var(--ink-dim);font-size:0.9rem;}
+  .soal-teks{font-size:1.03rem;margin:6px 0 12px;white-space:pre-wrap;}
+  .pilihan-list{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:7px;}
+  .pilihan-list li{
+    background:var(--bg);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:8px 12px;
+    font-size:0.95rem;
+  }
+  .pilihan-list li .huruf{color:var(--yellow);font-weight:700;margin-right:8px;}
+
+  .kisi-wrap{overflow-x:auto;margin-bottom:26px;}
+  table.kisi{
+    width:100%;
+    border-collapse:collapse;
+    font-size:0.86rem;
+    min-width:620px;
+  }
+  table.kisi th, table.kisi td{
+    border:1px solid var(--rule);
+    padding:9px 10px;
+    text-align:left;
+    vertical-align:top;
+  }
+  table.kisi th{
+    font-family:'Caveat', cursive;
+    font-size:1.15rem;
+    font-weight:700;
+    color:var(--yellow);
+    background:var(--bg3);
+  }
+  table.kisi td.col-no{text-align:center;color:var(--ink-dim);width:2.2em;}
+
+  .level-tag{
+    display:inline-block;
+    font-size:0.74rem;
+    font-weight:700;
+    color:var(--bg);
+    background:var(--teal);
+    border-radius:4px;
+    padding:2px 7px;
+    margin-left:8px;
+  }
+
+  .kunci{
+    margin-top:10px;
+    background:var(--bg3);
+    border-left:3px solid var(--yellow);
+    border-radius:0 6px 6px 0;
+    padding:10px 14px;
+    font-size:0.92rem;
+    display:none;
+  }
+  .kunci.show{display:block;}
+  .kunci b{color:var(--yellow);}
+
+  .toggle-kunci{
+    background:none;border:none;color:var(--teal);
+    font-size:0.85rem;font-weight:600;cursor:pointer;padding:0;
+    text-decoration:underline;text-underline-offset:2px;
+  }
+
+  footer{margin-top:40px;color:var(--ink-dim);font-size:0.8rem;text-align:center;}
+  footer a{color:var(--teal);}
+
+  @media (max-width:520px){
+    .row{grid-template-columns:1fr;}
+    header.top h1{font-size:2.4rem;}
+  }
+
+  @media print{
+    body{background:#fff;color:#111;padding:0;}
+    header.top p, #form, #formAnalyze, .mode-tabs, footer, .actions, .toggle-kunci{display:none !important;}
+    .card{border:none;padding:0;}
+    .hasil-head{margin-bottom:20px;}
+    .soal-item{break-inside:avoid;border-top:1px solid #ccc;}
+    .kunci{display:block !important;border-left-color:#111;background:#f4f4f4;}
+    .badge{border-color:#111 !important;color:#111 !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>SoalPintar</h1>
+    <p>Generator soal latihan otomatis, tersusun bertahap dari yang termudah sampai tersulit — ditenagai Gemini API.</p>
+  </header>
+
+  <section class="card">
+    <h2>API Key Gemini</h2>
+    <div class="apikey-row">
+      <input type="password" id="apiKey" placeholder="Tempel API key Gemini kamu di sini">
+      <button class="btn-ghost btn-small" id="toggleKeyVisibility" type="button">Lihat</button>
+    </div>
+    <small class="hint">
+      Belum punya API key? Ambil gratis di
+      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>.
+      Key hanya disimpan di browser kamu sendiri (localStorage) dan dikirim langsung ke server Google — tidak melewati server lain.
+    </small>
+  </section>
+
+  <div class="mode-tabs" role="tablist">
+    <button class="mode-tab active" id="tabGenerate" type="button">1 · Buat Soal Baru</button>
+    <button class="mode-tab" id="tabAnalyze" type="button">2 · Analisis Soal yang Sudah Ada</button>
+  </div>
+
+  <section class="card" id="form">
+    <h2>Detail Soal</h2>
+    <div class="row">
+      <div class="field">
+        <label for="mapel">Mata pelajaran</label>
+        <input type="text" id="mapel" placeholder="Contoh: Matematika">
+      </div>
+      <div class="field">
+        <label for="kelas">Tingkat kelas</label>
+        <input type="text" id="kelas" placeholder="Contoh: Kelas 5 SD">
+      </div>
+    </div>
+    <div class="field">
+      <label for="topik">Topik spesifik (opsional)</label>
+      <input type="text" id="topik" placeholder="Contoh: Pecahan, atau kosongkan untuk topik umum">
+    </div>
+    <div class="field">
+      <label for="kd">Kompetensi Dasar (opsional)</label>
+      <textarea id="kd" placeholder="Contoh: 3.2 Menjelaskan dan melakukan penjumlahan dan pengurangan pecahan. Kosongkan agar dirumuskan otomatis."></textarea>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="jumlah">Jumlah soal</label>
+        <input type="number" id="jumlah" value="8" min="3" max="20">
+      </div>
+      <div class="field">
+        <label for="jenis">Jenis soal</label>
+        <select id="jenis">
+          <option value="pilihan ganda">Pilihan ganda</option>
+          <option value="esai">Esai / uraian</option>
+          <option value="campuran" selected>Campuran</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="catatan">Catatan tambahan (opsional)</label>
+      <textarea id="catatan" placeholder="Contoh: fokus ke soal cerita, gunakan konteks kehidupan sehari-hari, dll."></textarea>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="generateBtn" type="button">Buat Soal Latihan</button>
+    </div>
+    <div class="status-line" id="statusLine"></div>
+  </section>
+
+  <section class="card" id="formAnalyze" style="display:none;">
+    <h2>Analisis Soal yang Sudah Ada</h2>
+    <div class="row">
+      <div class="field">
+        <label for="mapelA">Mata pelajaran</label>
+        <input type="text" id="mapelA" placeholder="Contoh: Matematika">
+      </div>
+      <div class="field">
+        <label for="kelasA">Tingkat kelas</label>
+        <input type="text" id="kelasA" placeholder="Contoh: Kelas 5 SD">
+      </div>
+    </div>
+    <div class="field">
+      <label for="soalMentah">Tempel soal yang sudah ada</label>
+      <textarea id="soalMentah" style="min-height:180px;" placeholder="Tempel soal apa adanya, boleh bernomor, pilihan ganda maupun esai. Contoh:&#10;1. Hasil dari 2/4 + 1/4 adalah ...&#10;a. 2/8  b. 3/4  c. 1  d. 3/8"></textarea>
+      <small class="hint">Urutan soal tidak akan diubah — AI hanya melengkapi kisi-kisinya (KD, Materi, Indikator Soal, Level Kognitif).</small>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="analyzeBtn" type="button">Analisis Soal</button>
+    </div>
+    <div class="status-line" id="statusLineAnalyze"></div>
+  </section>
+
+  <section id="hasil"></section>
+
+  <footer>
+    Dibuat untuk digunakan mandiri — semua proses berjalan di browser kamu dengan API key milikmu sendiri.
+  </footer>
+
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const DEFAULT_MODEL = 'gemini-2.5-flash';
+
+// --- persist small preferences locally ---
+window.addEventListener('DOMContentLoaded', () => {
+  const savedKey = localStorage.getItem('soalpintar_apikey');
+  if (savedKey) $('apiKey').value = savedKey;
+});
+
+$('toggleKeyVisibility').addEventListener('click', () => {
+  const el = $('apiKey');
+  const showing = el.type === 'text';
+  el.type = showing ? 'password' : 'text';
+  $('toggleKeyVisibility').textContent = showing ? 'Lihat' : 'Sembunyikan';
+});
+
+$('tabGenerate').addEventListener('click', () => switchMode('generate'));
+$('tabAnalyze').addEventListener('click', () => switchMode('analyze'));
+
+function switchMode(mode) {
+  const isGenerate = mode === 'generate';
+  $('tabGenerate').classList.toggle('active', isGenerate);
+  $('tabAnalyze').classList.toggle('active', !isGenerate);
+  $('form').style.display = isGenerate ? '' : 'none';
+  $('formAnalyze').style.display = isGenerate ? 'none' : '';
+  $('hasil').innerHTML = '';
+  setStatus('');
+  setStatus('', null, 'statusLineAnalyze');
+}
+
+const DIFFICULTY_ORDER = { 'mudah': 1, 'sedang': 2, 'sulit': 3, 'sangat sulit': 4 };
+const DIFFICULTY_CLASS = { 'mudah': 'mudah', 'sedang': 'sedang', 'sulit': 'sulit', 'sangat sulit': 'sangat-sulit' };
+
+function setStatus(msg, kind, elId) {
+  const el = $(elId || 'statusLine');
+  el.textContent = msg || '';
+  el.className = 'status-line' + (kind ? ' ' + kind : '');
+}
+
+function buildPrompt({ mapel, kelas, topik, kd, jumlah, jenis, catatan }) {
+  const topikLine = topik ? `Topik spesifik: ${topik}.` : `Topik: umum, mencakup beberapa subtopik penting dari mata pelajaran dan tingkat kelas tersebut.`;
+  const kdLine = kd
+    ? `Kompetensi Dasar (KD) acuan yang harus dipakai/diturunkan: ${kd}.`
+    : `Tidak ada KD yang diberikan — rumuskan sendiri KD yang wajar dan sesuai kurikulum untuk mata pelajaran dan tingkat kelas tersebut, satu KD boleh dipakai oleh beberapa soal jika relevan.`;
+  const catatanLine = catatan ? `Catatan tambahan dari pengajar: ${catatan}.` : '';
+  return `Kamu adalah penyusun kisi-kisi dan soal latihan untuk pelajar Indonesia.
+
+Buatkan ${jumlah} soal latihan mata pelajaran "${mapel}" untuk "${kelas}".
+${topikLine}
+${kdLine}
+Jenis soal yang diminta: ${jenis}.
+${catatanLine}
+
+Susun soal dengan tingkat kesulitan meningkat secara bertahap, terbagi rata ke dalam 4 kategori: "Mudah", "Sedang", "Sulit", "Sangat Sulit" (urutan dari termudah ke tersulit).
+Untuk setiap soal, tentukan juga Level Kognitif berdasarkan Taksonomi Bloom, dinyatakan sebagai salah satu dari: "C1 - Mengingat", "C2 - Memahami", "C3 - Menerapkan", "C4 - Menganalisis", "C5 - Mengevaluasi", "C6 - Mencipta". Level kognitif harus konsisten naik seiring tingkat kesulitan (soal Mudah umumnya C1-C2, soal Sangat Sulit umumnya C5-C6).
+Jika jenis soal "pilihan ganda", setiap soal punya 4 pilihan (A, B, C, D) dan hanya satu jawaban benar.
+Jika jenis soal "esai", tidak perlu pilihan, cukup pertanyaan dan kunci jawaban singkat.
+Jika "campuran", gabungkan kedua jenis secara wajar.
+
+Jawab HANYA dengan JSON valid, tanpa teks lain, tanpa markdown code fence, sesuai skema berikut:
+{
+  "soal": [
+    {
+      "kompetensi_dasar": "teks KD yang relevan untuk soal ini",
+      "materi": "pokok materi yang diuji soal ini (singkat, 2-6 kata)",
+      "indikator_soal": "kalimat indikator soal, format: 'Peserta didik dapat ...'",
+      "level_kognitif": "C1 - Mengingat" | "C2 - Memahami" | "C3 - Menerapkan" | "C4 - Menganalisis" | "C5 - Mengevaluasi" | "C6 - Mencipta",
+      "tingkat_kesulitan": "Mudah" | "Sedang" | "Sulit" | "Sangat Sulit",
+      "jenis": "pilihan_ganda" | "esai",
+      "pertanyaan": "teks pertanyaan",
+      "pilihan": { "A": "...", "B": "...", "C": "...", "D": "..." },
+      "jawaban_benar": "A" (untuk pilihan ganda) atau teks jawaban singkat (untuk esai),
+      "pembahasan": "penjelasan singkat kenapa jawaban itu benar"
+    }
+  ]
+}
+Untuk soal esai, field "pilihan" boleh dihilangkan atau diisi objek kosong.`;
+}
+
+function buildAnalyzePrompt({ mapel, kelas, soalMentah }) {
+  return `Kamu adalah asisten pengajar Indonesia yang ahli menyusun kisi-kisi soal.
+
+Berikut kumpulan soal yang SUDAH ADA (jangan diubah isinya, jangan digabung atau dipecah, pertahankan urutan aslinya persis):
+---
+${soalMentah}
+---
+
+Mata pelajaran: ${mapel}. Tingkat kelas: ${kelas}.
+Tentukan sendiri Kompetensi Dasar (KD) yang paling sesuai untuk tiap soal berdasarkan isi soal, mata pelajaran, dan tingkat kelas.
+
+Untuk SETIAP soal pada teks di atas, lakukan analisis berikut:
+- kompetensi_dasar: KD yang relevan dengan soal ini.
+- materi: pokok materi yang diuji soal ini (singkat, 2-6 kata).
+- indikator_soal: kalimat indikator soal, format "Peserta didik dapat ...".
+- level_kognitif: klasifikasikan menurut Taksonomi Bloom, salah satu dari "C1 - Mengingat", "C2 - Memahami", "C3 - Menerapkan", "C4 - Menganalisis", "C5 - Mengevaluasi", "C6 - Mencipta".
+- tingkat_kesulitan: estimasi tingkat kesulitan soal ini: "Mudah", "Sedang", "Sulit", atau "Sangat Sulit".
+- jenis: deteksi apakah soal ini "pilihan_ganda" atau "esai" berdasarkan teksnya.
+- pertanyaan: salin ulang teks pertanyaan asli apa adanya (tanpa nomor urut).
+- pilihan: jika pilihan ganda, salin ulang pilihan aslinya sebagai objek dengan kunci "A","B","C","D".
+- jawaban_benar: jika kunci jawaban terlihat jelas dari teks asli, salin. Jika tidak ada tapi kamu cukup yakin, tentukan sendiri jawaban yang benar. Jika benar-benar tidak bisa ditentukan, isi "-".
+- pembahasan: penjelasan singkat kenapa jawaban itu benar, atau "-" jika tidak bisa ditentukan.
+
+Jawab HANYA dengan JSON valid, tanpa teks lain, tanpa markdown code fence, dengan skema PERSIS seperti berikut, dan urutan array "soal" harus sama persis dengan urutan soal pada teks asli:
+{
+  "soal": [
+    {
+      "kompetensi_dasar": "...",
+      "materi": "...",
+      "indikator_soal": "...",
+      "level_kognitif": "...",
+      "tingkat_kesulitan": "...",
+      "jenis": "pilihan_ganda" | "esai",
+      "pertanyaan": "...",
+      "pilihan": { "A": "...", "B": "...", "C": "...", "D": "..." },
+      "jawaban_benar": "...",
+      "pembahasan": "..."
+    }
+  ]
+}`;
+}
+
+async function callGemini(apiKey, model, prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.8,
+        responseMimeType: 'application/json'
+      }
+    })
+  });
+
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const errJson = await res.json();
+      detail = errJson?.error?.message || '';
+    } catch (e) {}
+    throw new Error(`Gagal memanggil Gemini API (${res.status}). ${detail}`);
+  }
+
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+  if (!text) throw new Error('Respons dari Gemini kosong atau tidak sesuai format yang diharapkan.');
+
+  let cleaned = text.trim().replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+  let parsed;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch (e) {
+    throw new Error('Gagal membaca hasil dari Gemini sebagai JSON. Coba klik "Buat Soal Latihan" lagi.');
+  }
+  if (!parsed.soal || !Array.isArray(parsed.soal)) {
+    throw new Error('Format hasil dari Gemini tidak sesuai skema yang diminta.');
+  }
+  return parsed.soal;
+}
+
+function renderSoal(soalList, judul) {
+  const container = $('hasil');
+  container.innerHTML = '';
+
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const head = document.createElement('div');
+  head.className = 'hasil-head';
+  head.innerHTML = `
+    <h2>${escapeHtml(judul)}</h2>
+    <div class="actions">
+      <button class="btn-ghost btn-small" id="showAllKeys" type="button">Tampilkan semua kunci</button>
+      <button class="btn-ghost btn-small" id="printBtn" type="button">Cetak</button>
+    </div>
+  `;
+  card.appendChild(head);
+
+  const kisiWrap = document.createElement('div');
+  kisiWrap.className = 'kisi-wrap';
+  const bentukLabel = (j) => j === 'pilihan_ganda' ? 'Pilihan Ganda' : 'Esai';
+  kisiWrap.innerHTML = `
+    <table class="kisi">
+      <thead>
+        <tr>
+          <th class="col-no">No</th>
+          <th>Kompetensi Dasar</th>
+          <th>Materi</th>
+          <th>Indikator Soal</th>
+          <th>Level Kognitif</th>
+          <th>Bentuk Soal</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${soalList.map((s, i) => `
+          <tr>
+            <td class="col-no">${i + 1}</td>
+            <td>${escapeHtml(s.kompetensi_dasar || '-')}</td>
+            <td>${escapeHtml(s.materi || '-')}</td>
+            <td>${escapeHtml(s.indikator_soal || '-')}</td>
+            <td>${escapeHtml(s.level_kognitif || '-')}</td>
+            <td>${escapeHtml(bentukLabel(s.jenis))}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  card.appendChild(kisiWrap);
+
+  soalList.forEach((soal, idx) => {
+    const diffKeyRaw = (soal.tingkat_kesulitan || '').toLowerCase().trim();
+    const diffClass = DIFFICULTY_CLASS[diffKeyRaw] || 'sedang';
+    const diffLabel = soal.tingkat_kesulitan || 'Sedang';
+
+    const item = document.createElement('div');
+    item.className = 'soal-item';
+
+    let pilihanHtml = '';
+    if (soal.jenis === 'pilihan_ganda' && soal.pilihan && Object.keys(soal.pilihan).length) {
+      pilihanHtml = '<ul class="pilihan-list">' +
+        Object.entries(soal.pilihan).map(([huruf, teks]) =>
+          `<li><span class="huruf">${escapeHtml(huruf)}.</span>${escapeHtml(teks)}</li>`
+        ).join('') + '</ul>';
+    }
+
+    item.innerHTML = `
+      <div class="soal-top">
+        <span class="soal-nomor">Soal ${idx + 1}${soal.level_kognitif ? `<span class="level-tag">${escapeHtml(soal.level_kognitif)}</span>` : ''}</span>
+        <span class="badge ${diffClass}">${escapeHtml(diffLabel)}</span>
+      </div>
+      <div class="soal-teks">${escapeHtml(soal.pertanyaan || '')}</div>
+      ${pilihanHtml}
+      <button class="toggle-kunci" data-idx="${idx}">Lihat kunci jawaban</button>
+      <div class="kunci" id="kunci-${idx}">
+        <b>Jawaban:</b> ${escapeHtml(String(soal.jawaban_benar ?? '-'))}<br>
+        <b>Pembahasan:</b> ${escapeHtml(soal.pembahasan || '-')}
+      </div>
+    `;
+    card.appendChild(item);
+  });
+
+  container.appendChild(card);
+
+  card.querySelectorAll('.toggle-kunci').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.getAttribute('data-idx');
+      const kunciEl = $('kunci-' + idx);
+      const nowShown = kunciEl.classList.toggle('show');
+      btn.textContent = nowShown ? 'Sembunyikan kunci jawaban' : 'Lihat kunci jawaban';
+    });
+  });
+
+  $('showAllKeys').addEventListener('click', () => {
+    card.querySelectorAll('.kunci').forEach(el => el.classList.add('show'));
+    card.querySelectorAll('.toggle-kunci').forEach(b => b.textContent = 'Sembunyikan kunci jawaban');
+  });
+
+  $('printBtn').addEventListener('click', () => window.print());
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+$('analyzeBtn').addEventListener('click', async () => {
+  const apiKey = $('apiKey').value.trim();
+  const model = DEFAULT_MODEL;
+  const mapel = $('mapelA').value.trim();
+  const kelas = $('kelasA').value.trim();
+  const soalMentah = $('soalMentah').value.trim();
+
+  if (!apiKey) { setStatus('Masukkan API key Gemini terlebih dahulu.', 'err', 'statusLineAnalyze'); return; }
+  if (!mapel || !kelas) { setStatus('Isi mata pelajaran dan tingkat kelas terlebih dahulu.', 'err', 'statusLineAnalyze'); return; }
+  if (!soalMentah) { setStatus('Tempel dulu soal yang ingin dianalisis.', 'err', 'statusLineAnalyze'); return; }
+
+  localStorage.setItem('soalpintar_apikey', apiKey);
+
+  const btn = $('analyzeBtn');
+  btn.disabled = true;
+  setStatus('Sedang menganalisis soal, mohon tunggu…', null, 'statusLineAnalyze');
+  $('hasil').innerHTML = '';
+
+  try {
+    const prompt = buildAnalyzePrompt({ mapel, kelas, soalMentah });
+    const soalList = await callGemini(apiKey, model, prompt);
+    // urutan sengaja TIDAK diubah, mengikuti urutan soal asli
+    const judul = `${mapel} — ${kelas} · Hasil Analisis`;
+    renderSoal(soalList, judul);
+    setStatus(`Berhasil menganalisis ${soalList.length} soal.`, 'ok', 'statusLineAnalyze');
+  } catch (err) {
+    console.error(err);
+    setStatus(err.message || 'Terjadi kesalahan tak terduga.', 'err', 'statusLineAnalyze');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$('generateBtn').addEventListener('click', async () => {
+  const apiKey = $('apiKey').value.trim();
+  const model = DEFAULT_MODEL;
+  const mapel = $('mapel').value.trim();
+  const kelas = $('kelas').value.trim();
+  const topik = $('topik').value.trim();
+  const kd = $('kd').value.trim();
+  const jumlah = Math.max(3, Math.min(20, parseInt($('jumlah').value, 10) || 8));
+  const jenis = $('jenis').value;
+  const catatan = $('catatan').value.trim();
+
+  if (!apiKey) { setStatus('Masukkan API key Gemini terlebih dahulu.', 'err'); return; }
+  if (!mapel || !kelas) { setStatus('Isi mata pelajaran dan tingkat kelas terlebih dahulu.', 'err'); return; }
+
+  localStorage.setItem('soalpintar_apikey', apiKey);
+
+  const btn = $('generateBtn');
+  btn.disabled = true;
+  setStatus('Sedang membuat soal, mohon tunggu…');
+  $('hasil').innerHTML = '';
+
+  try {
+    const prompt = buildPrompt({ mapel, kelas, topik, kd, jumlah, jenis, catatan });
+    const soalList = await callGemini(apiKey, model, prompt);
+
+    soalList.sort((a, b) => {
+      const da = DIFFICULTY_ORDER[(a.tingkat_kesulitan || '').toLowerCase().trim()] || 99;
+      const db = DIFFICULTY_ORDER[(b.tingkat_kesulitan || '').toLowerCase().trim()] || 99;
+      return da - db;
+    });
+
+    const judul = `${mapel} — ${kelas}${topik ? ' · ' + topik : ''}`;
+    renderSoal(soalList, judul);
+    setStatus(`Berhasil membuat ${soalList.length} soal.`, 'ok');
+  } catch (err) {
+    console.error(err);
+    setStatus(err.message || 'Terjadi kesalahan tak terduga.', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
